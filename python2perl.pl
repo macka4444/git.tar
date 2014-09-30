@@ -20,15 +20,34 @@ while ($line = <>) {
         
     } elsif ($line =~ /^\s*print\s*([^\"]*)/){
         # printing variables ... subs 1
-        print "print \"\$",($1),"\\n\";\n";
-
+        $temp =$1;
+        chomp $temp;
+        if ($temp =~ /(\s*\S*\s*[\(\)\+\-\*\/]\s*)+/){
+            print "print ";
+            while ($temp =~ /(\s*\S*\s*[\(\)\+\-\*\/]*\s*)/g){
+                print "$1";
+            }
+            print ", \"\\n\";\n";
+        }else{
+            print "print \"\$",($temp),"\\n\";\n";
+        }
     } elsif ($line =~ /^\s*(.*)\s*=\s*(.*)/){
         #deal with $ variables ...subs 1
-        $sub = $2;
-        if ($sub =~ /(\s*\S*\s*[\(\)\+\-\*\/]\s*)+/){
-            while ($sub =~ m/(\s*\S*\s*[\+\-\*\/\%]+\s*)*/g){
-                print "-->",$1,"<--\n";
+        $lhs=$1;
+        $rhs = $2;
+        if ($rhs =~ /(\s*[^a-zA-Z][0-9]+\s*[\+\-\*\/\%]*)+/){
+            print "\$$lhs= $rhs;\n";
+        }elsif ($rhs =~ /(\s*\S*\s*[\(\)\+\-\*\/]\s*)+/){
+            print "\$",$lhs,' = ';
+            while ($rhs =~ m/(\s*\S*\s*[\+\-\*\/\%]*\s*)/g){
+                $temp = $1;
+                chomp $temp;
+                if ($temp =~ /[^\s]/){
+                    print "\$";
+                }
+                print $temp;
             }
+            print ";\n";
         }else{
             print "\$$1= $2;\n";
         }
