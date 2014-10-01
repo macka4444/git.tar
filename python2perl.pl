@@ -38,26 +38,56 @@ while ($line = <>) {
         }
         print ", \"\\n\";\n";
         
-        
-        
-        
-        #if ($temp =~ /(\s*\S*\s*[\(\)\+\-\*\/]\s*)+/){
-        #    #case where rhs of eqn deals with arithmetic operators
-        #    print "print ";
-        #    while ($temp =~ /(\s*\S*\s*[\(\)\+\-\*\/]*\s*)/g){
-        #        print "$1";
-        #    }
-        #    print ", \"\\n\";\n";
-        #}else{
-        #    #case with no operators
-        #    print "print \"\$",($temp),"\\n\";\n";
-        #}
-    } elsif ($line =~ /\s*if\s*(.*):\s*(.*)/){
+    } elsif ($line =~ /\s*if\s*(.*):\s*(.*)$/){
         #single line if statements ...subs2
         $cond = $1;
         $arg = $2;
-        
-        print "if \($cond\){\n\t$arg;\n\}\n";
+        print "if \($cond\){\n\t";
+        if ($arg =~ /^\s*(.*)\s*=\s*(.*)/){
+            $lhs=$1;
+            $rhs = $2;
+            if ($rhs =~ /(\s*\S*\s*[\(\)\+\-\*\/]\s*)+/){
+                print "\$",$lhs,' = ';
+                while ($rhs =~ m/(\s*(\S*)\s*[\+\-\*\/\%]*\s*)/g){
+                    $temp1 = $1;
+                    chomp $temp1;
+                    $temp2 =$2;
+                    if ($temp2 =~ /[^\s0-9]/){
+                        print "\$";
+                    }
+                    print $temp1;
+                }
+                print ";\n";
+            }else{
+                print "\$$1= $2;\n";
+            }
+        }
+        print "\}\n";
+    } elsif ($line =~ /\s*while\s*(.*):\s*(.*)$/){
+        #single line while statements ...subs2
+        $cond = $1;
+        $arg = $2;
+        print "while \($cond\){\n\t";
+        if ($arg =~ /^\s*(.*)\s*=\s*(.*)/){
+            $lhs=$1;
+            $rhs = $2;
+            if ($rhs =~ /(\s*\S*\s*[\(\)\+\-\*\/]\s*)+/){
+                print "\$",$lhs,' = ';
+                while ($rhs =~ m/(\s*(\S*)\s*[\+\-\*\/\%]*\s*)/g){
+                    $temp1 = $1;
+                    chomp $temp1;
+                    $temp2 =$2;
+                    if ($temp2 =~ /[^\s0-9]/){
+                        print "\$";
+                    }
+                    print $temp1;
+                }
+                print ";\n";
+            }else{
+                print "\$$1= $2;\n";
+            }
+        }
+        print "\}\n";
         
     } elsif ($line =~ /^\s*(.*)\s*=\s*(.*)/){
         #deal with $ variables ...subs 1
@@ -80,9 +110,7 @@ while ($line = <>) {
             print "\$$1= $2;\n";
             
         }
-    
-
-    
+        
     } else {
         #Lines we can't translate are turned into comments
         print "#$line\n";
