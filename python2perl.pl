@@ -3,8 +3,27 @@
 #  python2perl.pl
 #  Created by Mackenzie Baran on 27/09/2014.
 
+$ifwhile=0;
+
 while ($line = <>) {
-    print "\"$line\"";
+    if ($line =~ /\s*if\s*(.*):\s*(.*)$/){
+        #single line if statements ...subs2
+        $cond = $1;
+        $arg = $2;
+        print "if \($cond\){\n\t";
+        $line=$arg;
+        $ifwhile=1;
+    }elsif ($line =~ /\s*while\s*(.*):\s*(.*)$/){
+        #single line if statements ...subs2
+        $cond = $1;
+        $arg = $2;
+        print "if \($cond\){\n\t";
+        $line=$arg;
+        $ifwhile=1;
+    }
+
+    
+    
     if ($line =~ /^#!/ && $. == 1) {
         # translate #! line... subs 0
         print "#!/usr/bin/perl -w\n";
@@ -38,22 +57,6 @@ while ($line = <>) {
             
         }
         print ", \"\\n\";\n";
-        
-    } elsif ($line =~ /\s*if\s*(.*):\s*(.*)$/){
-        #single line if statements ...subs2
-        $cond = $1;
-        $arg = $2;
-        print "if \($cond\){\n\t";
-        
-        print "\}\n";
-    } elsif ($line =~ /\s*while\s*(.*):\s*(.*)$/){
-        #single line while statements ...subs2
-        $cond = $1;
-        $arg = $2;
-        print "while \($cond\){\n\t";
-        
-        print "\}\n";
-        
     } elsif ($line =~ /^\s*(.*)\s*=\s*(.*)/){
         #deal with $ variables ...subs 1
         $lhs=$1;
@@ -70,15 +73,16 @@ while ($line = <>) {
                 print $temp1;
             }
             print ";\n";
-            
         }else{
             print "\$$1= $2;\n";
-            
         }
-        
     } else {
         #Lines we can't translate are turned into comments
         print "#$line\n";
-        
+    }
+
+    if ($ifwhile == 1){
+        $ifwhile=0;
+        print "\}\n";
     }
 }
