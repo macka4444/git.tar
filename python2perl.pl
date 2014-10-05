@@ -18,6 +18,9 @@ while ($element = <>) {
 $line = $lines[0];
 
 while ($i-$extension<$j){
+    #print "...$ifwhile\n";
+    #sprint "<--";
+    
     if ($line =~ /\s*if\s*(.*):\s*(.*)$/){
         #single line if statements ...subs2
         $cond = $1;
@@ -33,7 +36,6 @@ while ($i-$extension<$j){
         $line=$cond;
         $ifwhile=1;
     }
-    
     
     
     if ($i==0) {
@@ -56,6 +58,7 @@ while ($i-$extension<$j){
         chomp $temp;
         print "print ";
         
+        
         while ($temp =~ m/\s*(\S*)\s*([\,\;\(\)\+\-\*\/]*)/g){
             $numvar = $1;
             $operation = $2;
@@ -76,13 +79,15 @@ while ($i-$extension<$j){
         #deal with $ variables ...subs 1
         $lhs=$1;
         $operator=$2;
+        #print "-->$operator\n";
         $rhs = $3;
-        if ($rhs =~ /(\s*\S*\s*[\(\)\+\-\*\/]\s*)+/){
+        if ($rhs =~ /(\s*\S*\s*[\(\)\+\-\*\/&~|^]*\s*)+/){
             print "\$",$lhs,"$operator ";
-            while ($rhs =~ m/(\s*(\S*)\s*[\+\-\*\/\%]*\s*)/g){
+            while ($rhs =~ m/(\s*(\S*)\s*[\+\-\*\/\~%&|^]*\s*)/g){
                 $temp1 = $1;
                 chomp $temp1;
                 $temp2 =$2;
+                #print "\n-->$temp1\n";
                 if ($temp2 =~ /[^\s0-9]/){
                     print "\$";
                 }
@@ -92,9 +97,14 @@ while ($i-$extension<$j){
         }else{
             print "\$$1$2 $3";
         }
+        
         if ($ifwhile!=1){
             print ";\n";
         }
+    }elsif ($line =~ /.*break.*/){
+        print "last;\n";
+    }elsif ($line =~ /.*continue.*/){
+        print "next;\n";
     } else {
         #Lines we can't translate are turned into comments
         print "#$line\n";
@@ -114,12 +124,14 @@ while ($i-$extension<$j){
             $end=$2;
             #print $line, "...\n";
             while ($line =~ /([^;]*);/g){
-                #print "-$1-\n";
+                # print "-$1-\n";
                 push(@iwargs,$1);
                 $argcount++;
                 $extension++;
             }
+            
             push (@iwargs,$end);
+            #print "----@iwargs....";
             $line = shift(@iwargs);
         }
     }elsif ($ifwhile == 2){
@@ -129,14 +141,16 @@ while ($i-$extension<$j){
         $ifwhile=0;
     }elsif ($ifwhile == 3){
         $k++;
-        if ($k != $argcount){
-            $ifwhile=0;
-            $i++;
-            $line = $lines[$i];
-            print "\}\n";
-        } else {
+        #print "----";
+        if ($k <= $argcount){
             $line = shift(@iwargs);
             print "\t";
+        } else {
+            $ifwhile=0;
+            #$i++;
+            $line = $lines[$i];
+            print "\}\n";
+            $extension=$extension-$argcount;
         }
     }else{
         $i++;
@@ -144,4 +158,3 @@ while ($i-$extension<$j){
     }
 
 }
-#print "\n>\n$line\n<\n";
