@@ -8,6 +8,7 @@ $i=0;
 $j=0;
 $extension=0;
 my @lines;
+$sym="=!><";
 
 #push all lines ont an array/list
 
@@ -27,6 +28,7 @@ while ($i-$extension<$j){
         $arg = $2;
         print "if \(";
         $line=$cond;
+        $sym="=!<>";
         $ifwhile=1;
     }elsif ($line =~ /\s*while\s*(.*):\s*(.*)$/){
         #single line if statements ...subs2
@@ -34,6 +36,7 @@ while ($i-$extension<$j){
         $arg = $2;
         print "if \(";
         $line=$cond;
+        $sym="=!<>";
         $ifwhile=1;
     }
     
@@ -75,15 +78,16 @@ while ($i-$extension<$j){
         if ($ifwhile!=1){
             print ";\n";
         }
-    } elsif ($line =~ /^\s*(.*)\s*([=><!]+)\s*(.*)/){
+    } elsif ($line =~ /^\s*(.*)\s*([$sym]+)\s*(.*)/){
         #deal with $ variables ...subs 1
+        $sym="=!";
         $lhs=$1;
         $operator=$2;
         #print "-->$operator\n";
         $rhs = $3;
-        if ($rhs =~ /(\s*\S*\s*[\(\)\+\-\*\/&~|^]*\s*)+/){
+        if ($rhs =~ /(\s*\S*\s*[\(\)\+\-\*\/&~|<>^]*\s*)+/){
             print "\$",$lhs,"$operator ";
-            while ($rhs =~ m/(\s*(\S*)\s*[\+\-\*\/\~%&|^]*\s*)/g){
+            while ($rhs =~ m/(\s*(\S*)\s*[\+\-\*\/\~%&|<>^]*\s*)/g){
                 $temp1 = $1;
                 chomp $temp1;
                 $temp2 =$2;
